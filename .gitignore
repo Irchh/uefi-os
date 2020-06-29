@@ -1,0 +1,5 @@
+font/*
+*.o
+*.efi
+*.bin
+*.img
