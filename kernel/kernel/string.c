@@ -25,8 +25,8 @@ char* strcat(char* str1, char* str2) {
 }
 
 void itoa(long long i, char* res, int base) {
-	if (!res)
-		res = malloc(22*sizeof(char));
+	if (!res) return;
+		//res = malloc(22*sizeof(char));
 
 	int k = 0;
 	long long j = i;
@@ -42,11 +42,16 @@ void itoa(long long i, char* res, int base) {
 	if (i == 0)
 		res[k] = '0';
 	while(i != 0) {
-		unsigned char n = i%base;
-		if (n < 0xA)
-			res[k] = n + 0x30;
+		unsigned char n;
+		if (i > 0)
+			n = i%base;
 		else
-			res[k] = n + 0x37;
+			n = -i%(base);
+
+		if (n < 0xA)
+			res[k] = (char)n + 0x30;
+		else
+			res[k] = (char)n + 0x37;
 		i /= base;
 		k--;
 	}

@@ -134,10 +134,23 @@ void drawPsfChar(char c, UINTN cx, UINTN cy) {
 }
 
 void PrintChar(char c) {
-	drawPsfChar(c, termX, termY);
-	if (++termX == termW) {
-		termX = 0;
-		if (++termY == termH)
-			termY = 0;
+	switch (c) {
+		case '\n': {
+			// TODO: Scroll screen
+			if (++termY == termH)
+				termY = 0;
+			termX = 0;
+			break;
+		}
+		case '\r': { termX = 0; break; }
+		case '\b': { if (termX > 0) --termX; break; }
+		default: {
+			drawPsfChar(c, termX, termY);
+			if (++termX == termW) {
+				termX = 0;
+				if (++termY == termH)
+					termY = 0;
+			}
+		}
 	}
 }

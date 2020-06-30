@@ -2,10 +2,9 @@
 #define __MEM_H_
 
 #include <stdint.h>
-#include <efi.h>
+#include <efihelper.h>
 
-extern EFI_BOOT_SERVICES *gBS;
-
+void init_mem_after_bs();
 void* malloc (size_t size);
 void free (void *pool);
 

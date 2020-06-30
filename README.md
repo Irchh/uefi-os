@@ -16,4 +16,6 @@ My (Soon™) UEFI os written in C.
 # Why?
 To learn! I love computers and want to learn about every inch
 of how the inner workings work. I understand that this is a huge
-undertaking, but thats also why I can learn so much from it.
+undertaking, but thats also why I feel like I can learn so much from it.
+
+First project after finishing highschool.

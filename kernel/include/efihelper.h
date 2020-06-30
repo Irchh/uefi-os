@@ -19,6 +19,10 @@ extern EFI_PHYSICAL_ADDRESS lfb_base_addr;
 extern bool init;
 extern bool exit;
 
+extern UINTN mapSize, mapKey, descriptorSize;
+extern EFI_MEMORY_DESCRIPTOR *memoryMap;
+extern UINT32 descriptorVersion;
+
 EFI_STATUS init_efi(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable);
 void init_gfx();
 EFI_STATUS Init();

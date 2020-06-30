@@ -60,10 +60,11 @@ char* vformat(const char* fmt, va_list args) {
 		{
 			fmt++;
 			switch(*fmt) {
-				case '\0':
+				case '\0': {
 					fmt--;
 					break;
-				case 'i':
+				}
+				case 'i': {
 					long long int_val = va_arg(args, long long);
 					char* intstr = malloc(22*sizeof(char));
 					if(!intstr){
@@ -83,7 +84,8 @@ char* vformat(const char* fmt, va_list args) {
 						while(1);
 					}
 					break;
-				case 'x':
+				}
+				case 'x': {
 					long long hex_val = va_arg(args, long long);
 					char* hexstr = malloc(22*sizeof(char));
 					if(!hexstr){
@@ -103,7 +105,8 @@ char* vformat(const char* fmt, va_list args) {
 						while(1);
 					}
 					break;
-				case 's':
+				}
+				case 's': {
 					char* str_val = va_arg(args, char*);
 					backup = str;
 					str = strcat(str, str_val);
@@ -116,7 +119,8 @@ char* vformat(const char* fmt, va_list args) {
 						while(1);
 					}
 					break;
-				case 'c':
+				}
+				case 'c': {
 					char char_val = va_arg(args, unsigned int);
 					char charstr[2];
 					charstr[0] = char_val;
@@ -131,9 +135,11 @@ char* vformat(const char* fmt, va_list args) {
 						while(1);
 					}
 					break;
-				default:
+				}
+				default: {
 					fmt--;
 					break;
+				}
 			}
 		}else{
 			interp_next = true;

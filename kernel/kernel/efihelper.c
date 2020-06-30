@@ -1,6 +1,7 @@
 #include <efihelper.h>
 #include <io.h>
 #include <mem.h>
+#include <console.h>
 
 EFI_HANDLE gIH;
 EFI_SYSTEM_TABLE *gST;
@@ -31,6 +32,10 @@ EFI_STATUS init_efi(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	gRS = gST->RuntimeServices;
 
 	init_gfx();
+
+	gGP->QueryMode(gGP, gGP->Mode->Mode, &size_of_info, &gop_mode_info);
+	lfb_base_addr = gGP->Mode->FrameBufferBase;
+	InitCon(gop_mode_info);
 
 	return EFI_SUCCESS;
 }
@@ -139,14 +144,14 @@ void printModes() {
 	}
 }
 
+UINTN mapSize = 0, mapKey, descriptorSize;
+EFI_MEMORY_DESCRIPTOR *memoryMap = NULL;
+UINT32 descriptorVersion;
 EFI_STATUS exit_services() {
 	if (exit)
 		return EFI_SUCCESS;
 	exit = true;
 	EFI_STATUS result;
-	UINTN mapSize = 0, mapKey, descriptorSize;
-	EFI_MEMORY_DESCRIPTOR *memoryMap = NULL;
-	UINT32 descriptorVersion;
 	result = gBS->GetMemoryMap(&mapSize, memoryMap, NULL, &descriptorSize, NULL);
 	if (result != EFI_BUFFER_TOO_SMALL) {
 		return result;
