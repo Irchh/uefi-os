@@ -41,14 +41,19 @@ void drawTriangle(UINTN center_x, UINTN center_y, UINTN width, UINT32 color) {
 }
 
 void copyBlock(UINTN x1, UINTN y1, UINTN x2, UINTN y2, UINTN w, UINTN h) {
-	UINT32* at = (UINT32*)lfb_base_addr;
 	for (int x = 0; x < w; ++x)
 		for (int y = 0; y < h; ++y)
-			drawPixel(x+x2, y+y2, readPixel(w-(x+x1), y+y1));
+			drawPixel(x+x2, y+y2, readPixel(x+x1, y+y1));
 }
 
 void drawBlock(const UINT32* arr, UINTN x1, UINTN y1, UINTN w, UINTN h) {
 	for (int x = 0; x < w; ++x)
 		for (int y = 0; y < h; ++y)
 			drawPixel(x+x1, y+y1, arr[x+w*y]);
+}
+
+void clearBlock(UINTN x1, UINTN y1, UINTN w, UINTN h) {
+	for (int x = 0; x < w; ++x)
+		for (int y = 0; y < h; ++y)
+			drawPixel(x+x1, y+y1, 0x000000);
 }

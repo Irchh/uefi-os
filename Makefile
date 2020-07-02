@@ -39,10 +39,14 @@ hdimage.bin: os-image.img
 	mkgpt -o hdimage.bin --image-size 4096 --part $< --type system
 
 run: os-image.img
-	qemu-system-x86_64 -L firmware/ -bios OVMF_CODE.fd -drive format=raw,file=$<
+	qemu-system-x86_64 -L firmware/ -bios OVMF_CODE.fd -drive format=raw,file=$< -d int,cpu_reset
 runwin: hdimage.bin
 	powershell.exe F:\\qemu\\qemu-system-x86_64.exe -hda X:\\home\\irch\\src\\uefi-os\\$< \
-	-L X:\\home\\irch\\src\\uefi-os\\firmware\\ -bios OVMF_CODE.fd
+	-L X:\\home\\irch\\src\\uefi-os\\firmware\\ -bios OVMF_CODE.fd -d cpu_reset
+
+runwindbg: hdimage.bin
+	powershell.exe F:\\qemu\\qemu-system-x86_64.exe -hda X:\\home\\irch\\src\\uefi-os\\$< \
+	-L X:\\home\\irch\\src\\uefi-os\\firmware\\ -bios OVMF_CODE.fd -d cpu_reset -S -s
 
 clean:
 	rm -rf *.bin *.iso *.o

@@ -1,9 +1,16 @@
-.section .text
+bits 64
+section .text
 
-.global load_gdt
+global load_gdt
+global read_tr
+
+read_tr:
+	xor rax, rax
+	str rax
+	ret
 
 load_gdt:
-	lgdt [rdi]
+	lgdt [rcx]
 	mov ax, 0x40
 	ltr ax
 	mov ax, 0x08
@@ -13,7 +20,8 @@ load_gdt:
 	mov gs, ax
 	mov ss, ax
 	pop rdi
-	mov rax, 0x10
+	mov rax, 0x38
 	push rax
 	push rdi
-	rex64 retf
+	db 0x48
+	retf

@@ -3,6 +3,7 @@
 #include <psf.h>
 #include <mem.h>
 #include <limits.h>
+#include <string.h>
 
 UINT32 fontW = 0;
 UINT32 fontH = 0;
@@ -133,12 +134,19 @@ void drawPsfChar(char c, UINTN cx, UINTN cy) {
 	}
 }
 
+void scrollUp() {
+	int scrollSize = (termH-1)*fontH;
+	copyBlock(0, fontH, 0, 0, termW*fontW, scrollSize);
+	clearBlock(0, scrollSize, termW*fontW, fontH);
+}
+
 void PrintChar(char c) {
 	switch (c) {
 		case '\n': {
-			// TODO: Scroll screen
-			if (++termY == termH)
-				termY = 0;
+			if (++termY == termH) {
+				termY--;
+				scrollUp();
+			}
 			termX = 0;
 			break;
 		}
@@ -148,9 +156,24 @@ void PrintChar(char c) {
 			drawPsfChar(c, termX, termY);
 			if (++termX == termW) {
 				termX = 0;
-				if (++termY == termH)
-					termY = 0;
+				if (++termY == termH) {
+					termY--;
+					scrollUp();
+				}
 			}
 		}
 	}
+}
+
+void PrintStr(const char* s) {
+	while (*s) {
+		PrintChar(*s);
+		s++;
+	}
+}
+
+void PrintInt(int i, int base) {
+	char str[22];
+	itoa(i, str, base);
+	PrintStr(str);
 }
