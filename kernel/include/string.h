@@ -1,11 +1,7 @@
 #ifndef __string_h__
 #define __string_h__
 
-#if __SIZEOF_POINTER__ == 8
-	typedef unsigned long long size_t;
-#else
-	typedef unsigned int size_t;
-#endif
+#include <stddef.h>
 
 #if !defined(NULL)
 	#define NULL ((void*)0)

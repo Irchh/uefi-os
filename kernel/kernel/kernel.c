@@ -2,6 +2,7 @@
 #include <io.h>
 #include <mem.h>
 #include <gdt.h>
+#include <idt.h>
 #include <string.h>
 #include <console.h>
 #include <psf.h>

@@ -1,38 +1,26 @@
-CC = clang
-CFLAGS = \
-		--target=x86_64-unknown-windows -ffreestanding \
-		-fshort-wchar -mno-red-zone -I /usr/include/efi -I /usr/include/efi/x86_64
+.PHONY: kernel loader kernel/kernel.elf os-image.img
 
-LD = clang
-LDFLAGS = \
-		--target=x86_64-unknown-windows \
-		-nostdlib \
-		-Wl,-entry:efi_main \
-		-Wl,-subsystem:efi_application \
-		-fuse-ld=lld-link
+all: loader kernel
 
-C_SOURCES = $(wildcard *.c)
-OBJ = ${C_SOURCES:.c=.o}
-
-.PHONY: boot kernel boot/boot.bin kernel/kernel.bin os-image.img
-
-all: kernel
-
-boot/boot.bin: boot
-kernel/kernel.efi: kernel
+kernel/kernel.elf: kernel
+loader/loader.efi: loader
 
 kernel:
 	cd kernel && ${MAKE}
 
-os-image.img: kernel/kernel.efi
+loader:
+	cd loader && ${MAKE}
+
+os-image.img: loader kernel
 	dd if=/dev/zero of=os-image.img bs=1k count=1440
 	mformat -i os-image.img -f 1440 ::
 	mmd -i os-image.img ::/EFI
 	mmd -i os-image.img ::/EFI/BOOT
 	mmd -i os-image.img ::/EFI/BOOT/MyOS
-	cp $< BOOTX64.EFI
+	cp loader/loader.efi BOOTX64.EFI
 	mcopy -i os-image.img BOOTX64.EFI ::/EFI/BOOT
 	mcopy -i os-image.img font/UbuntuMono-R-8x16.psf ::/EFI/BOOT/MyOS
+	mcopy -i os-image.img kernel/kernel.elf ::/EFI/BOOT/MyOS
 	rm BOOTX64.EFI
 
 hdimage.bin: os-image.img
@@ -51,3 +39,4 @@ runwindbg: hdimage.bin
 clean:
 	rm -rf *.bin *.iso *.o
 	cd kernel && ${MAKE} clean
+	cd loader && ${MAKE} clean

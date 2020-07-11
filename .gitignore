@@ -1,5 +1,7 @@
 font/*
 *.o
 *.efi
+*.elf
+*.out
 *.bin
 *.img

@@ -1,7 +1,7 @@
 #ifndef __MEM_H_
 #define __MEM_H_
 
-#include <stdint.h>
+#include <stddef.h>
 #include <efihelper.h>
 
 void init_mem_after_bs();
