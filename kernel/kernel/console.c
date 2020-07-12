@@ -22,10 +22,10 @@ UINT16* unicode;
 
 void InitCon(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info) {
 	UINTN font_len = load_file_efi(L"EFI\\BOOT\\MyOS\\UbuntuMono-R-8x16.psf", (void*)&psf2_font);
-	printf("LENGTH: %i\n", font_len);
+	printf("LENGTH: %i\r\n", font_len);
 	psf1_font = (struct psf1_header*)psf2_font;
 	if (PSF2_MAGIC_OK(psf2_font->magic)) {
-		printf("PSF2\r\n");
+		printf("FONT IS PSF2\r\n");
 		fontW = psf2_font->width;
 		fontH = psf2_font->height;
 		headersize = psf2_font->headersize;
@@ -74,7 +74,7 @@ void InitCon(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info) {
 		}
 	}
 	else if (PSF1_MAGIC_OK(psf1_font->magic)) {
-		printf("PSF1\r\n");
+		printf("FONT IS PSF1\r\n");
 		fontW = 8;
 		fontH = psf1_font->charsize;
 		headersize = sizeof(struct psf1_header);

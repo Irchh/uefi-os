@@ -10,7 +10,7 @@ read_tr:
 	ret
 
 load_gdt:
-	lgdt [rcx]
+	lgdt [rdi]
 	mov ax, 0x40
 	ltr ax
 	mov ax, 0x08

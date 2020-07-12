@@ -21,6 +21,31 @@ static EFI_GUID GraphicsOutputProtocolGUID = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 bool exit = false;
 bool init = false;
 
+UINT64 efi_call1(void *func, UINT64 arg1) {
+	UINT64 (__attribute__((ms_abi))*f)(UINT64) = func;
+	return f(arg1);
+}
+
+UINT64 efi_call2(void *func, UINT64 arg1, UINT64 arg2) {
+	UINT64 (__attribute__((ms_abi))*f)(UINT64, UINT64) = func;
+	return f(arg1, arg2);
+}
+
+UINT64 efi_call3(void *func, UINT64 arg1, UINT64 arg2, UINT64 arg3) {
+	UINT64 (__attribute__((ms_abi))*f)(UINT64, UINT64, UINT64) = func;
+	return f(arg1, arg2, arg3);
+}
+
+UINT64 efi_call4(void *func, UINT64 arg1, UINT64 arg2, UINT64 arg3, UINT64 arg4) {
+	UINT64 (__attribute__((ms_abi))*f)(UINT64, UINT64, UINT64, UINT64) = func;
+	return f(arg1, arg2, arg3, arg4);
+}
+
+UINT64 efi_call5(void *func, UINT64 arg1, UINT64 arg2, UINT64 arg3, UINT64 arg4, UINT64 arg5) {
+	UINT64 (__attribute__((ms_abi))*f)(UINT64, UINT64, UINT64, UINT64, UINT64) = func;
+	return f(arg1, arg2, arg3, arg4, arg5);
+}
+
 EFI_STATUS init_efi(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	if (init)
 		return EFI_SUCCESS;
@@ -33,7 +58,7 @@ EFI_STATUS init_efi(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 	init_gfx();
 
-	gGP->QueryMode(gGP, gGP->Mode->Mode, &size_of_info, &gop_mode_info);
+	uefi_call_wrapper(gGP->QueryMode, 4, gGP, gGP->Mode->Mode, &size_of_info, &gop_mode_info);
 	lfb_base_addr = gGP->Mode->FrameBufferBase;
 	InitCon(gop_mode_info);
 
@@ -43,17 +68,20 @@ EFI_STATUS init_efi(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 void init_gfx() {
 	EFI_STATUS status;
 	if (gGP == NULL) {
-		status = gBS->LocateHandleBuffer(
+		printf("LocateHandleBuffer\r\n");
+		status = uefi_call_wrapper(gBS->LocateHandleBuffer, 5,
 						ByProtocol,
 						&GraphicsOutputProtocolGUID,
 						NULL,
 						&handleCount,
 						&handleBuffer);
+		printf("LocateHandleBuffer end\r\n");
 		if (EFI_ERROR(status)) {
 			printf("error: LocateHandleBuffer() failed\r\n");
 			while(1);
 		}
-		status = gBS->HandleProtocol(handleBuffer[0], &GraphicsOutputProtocolGUID, (void**)&gGP);
+		status = uefi_call_wrapper(gBS->HandleProtocol, 3,
+						handleBuffer[0], &GraphicsOutputProtocolGUID, (void**)&gGP);
 		if (EFI_ERROR(status) || gGP == NULL) {
 			printf("error: HandleProtocol() failed\r\n");
 			while(1);
@@ -76,7 +104,7 @@ void init_gfx() {
 	if (status != EFI_SUCCESS)//*/
 		mode_num = gGP->Mode->Mode;
 
-	status = gGP->SetMode(gGP, mode_num);
+	status = uefi_call_wrapper(gGP->SetMode, 2, gGP, mode_num);
 	if (EFI_ERROR(status)) {
 		printf("error: failed to set default mode\r\n");
 	}
@@ -91,7 +119,8 @@ UINTN load_file_efi(CHAR16* file, void** dest) {
 	EFI_FILE_PROTOCOL* token = NULL;
 	UINTN BufferSize = 1024*32;
 
-	EFI_STATUS efiStatus = gBS->LocateHandleBuffer(ByProtocol, 
+	EFI_STATUS efiStatus = uefi_call_wrapper(gBS->LocateHandleBuffer, 5,
+									   ByProtocol,
 									   &sfspGuid, 
 									   NULL, 
 									   &handleCount, 
@@ -100,16 +129,16 @@ UINTN load_file_efi(CHAR16* file, void** dest) {
 	for (int index = 0; index < (int)handleCount; ++ index) {
 		EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* fs = NULL;
 
-		efiStatus = gBS->HandleProtocol(
+		efiStatus = uefi_call_wrapper(gBS->HandleProtocol, 3,
 			handles[index],
 			&sfspGuid,
 			(void**)&fs);
 
 		EFI_FILE_PROTOCOL* root = NULL;
-		efiStatus = fs->OpenVolume(fs, &root);
+		efiStatus = uefi_call_wrapper(fs->OpenVolume, 2, fs, &root);
 
 		token = NULL;
-		efiStatus = root->Open(
+		efiStatus = uefi_call_wrapper(root->Open, 5,
 			root, 
 			&token,
 			file,
@@ -123,7 +152,7 @@ UINTN load_file_efi(CHAR16* file, void** dest) {
 	//efiStatus = token->Read(token, &BufferSize, NULL);
 	//void* buf = malloc(1024*32);
 	//*dest = malloc(1024*32);
-	efiStatus = token->Read(token, &BufferSize, *dest);
+	efiStatus = uefi_call_wrapper(token->Read, 3, token, &BufferSize, *dest);
 	return BufferSize;
 }
 
@@ -133,7 +162,7 @@ void printModes() {
 	UINTN size_of_info;
 	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info;
 	for (mode_num = 0;
-		 (status = gGP->QueryMode( gGP, mode_num, &size_of_info, &gop_mode_info )) == EFI_SUCCESS;
+		 (status = uefi_call_wrapper(gGP->QueryMode, 4, gGP, mode_num, &size_of_info, &gop_mode_info )) == EFI_SUCCESS;
 		 mode_num++) {
 		printf("Hor: %i, Ver: %i, PF: %i, Mode: %i\t", gop_mode_info->HorizontalResolution,
 													   gop_mode_info->VerticalResolution,
@@ -152,26 +181,26 @@ EFI_STATUS exit_services() {
 		return EFI_SUCCESS;
 	exit = true;
 	EFI_STATUS result;
-	result = gBS->GetMemoryMap(&mapSize, memoryMap, NULL, &descriptorSize, NULL);
+	result = uefi_call_wrapper(gBS->GetMemoryMap, 5, &mapSize, memoryMap, NULL, &descriptorSize, NULL);
 	if (result != EFI_BUFFER_TOO_SMALL) {
 		return result;
 		//printf("result: %i\n", result);
 	}
 	
 	mapSize += 2 * descriptorSize;
-	result = gBS->AllocatePool(EfiLoaderData, mapSize, (void **)&memoryMap);
+	result = uefi_call_wrapper(gBS->AllocatePool, 4, EfiLoaderData, mapSize, (void **)&memoryMap);
 	if (result != EFI_SUCCESS) {
 		return result;
 		//printf("-- ERROR: AllocatePool --\r\n");
 	}
 
-	result = gBS->GetMemoryMap(&mapSize, memoryMap, &mapKey, &descriptorSize, &descriptorVersion);
+	result = uefi_call_wrapper(gBS->GetMemoryMap, 5, &mapSize, memoryMap, &mapKey, &descriptorSize, &descriptorVersion);
 	if (result != EFI_SUCCESS) {
 		return result;
 		//printf("-- ERROR: GetMemoryMap --\r\n");
 	}
 
-	result = gBS->ExitBootServices(gIH, mapKey);
+	result = uefi_call_wrapper(gBS->ExitBootServices, 2, gIH, mapKey);
 	if (result != EFI_SUCCESS && result != EFI_INVALID_PARAMETER) {
 		return result;
 		// printf("-- ERROR: ExitBootServices --\r\n");

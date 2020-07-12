@@ -26,7 +26,7 @@ EFI_STATUS kernel_main()
 
 	setup_gdt();
 
-	print_segment_stuff();
+	//print_segment_stuff();
 
 	PrintStr("TR: 0x");
 	PrintInt(read_tr(), 16);
@@ -37,10 +37,6 @@ EFI_STATUS kernel_main()
 	PrintStr(", descriptorSize: ");
 	PrintInt(descriptorSize, 10);
 	PrintStr("\n");
-
-	//drawTriangle(gop_mode_info->HorizontalResolution / 2, gop_mode_info->VerticalResolution / 2, 200, 0x00ff8800);
-
-	//copyBlock(0, 0, gop_mode_info->HorizontalResolution / 2, 0, gop_mode_info->HorizontalResolution / 2, gop_mode_info->VerticalResolution);
 
 	PrintStr("Welcome to my sh!\n");
 

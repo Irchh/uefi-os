@@ -42,7 +42,7 @@ void* _UEFI_malloc (size_t size) {
 	}
 	EFI_STATUS status;
 	void *handle;
-	status = gBS->AllocatePool(EfiBootServicesData, size, &handle);
+	status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiBootServicesData, size, &handle);
 	if(status == EFI_OUT_OF_RESOURCES || status == EFI_INVALID_PARAMETER)
 		return 0;
 	else{
@@ -58,6 +58,7 @@ void _UEFI_free (void *pool) {
 		return _free(pool);
 	}
 	EFI_STATUS status;
+	uefi_call_wrapper(gBS->FreePool, 1, pool);
 	gBS->FreePool(pool);
 }
 

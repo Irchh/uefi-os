@@ -18,7 +18,7 @@ int newlines(char* str, int len) {
 }
 
 void printStrW(CHAR16* str) {
-	gST->ConOut->OutputString(gST->ConOut, str);
+	uefi_call_wrapper(gST->ConOut->OutputString, 2, gST->ConOut, str);
 }
 
 void _printWithBS(char* str);
@@ -38,8 +38,8 @@ void _printWithBS(char* str) {
 	
 	CHAR16 res[len+new];
 
-	char_to_wchar(str, res, len);
-	gST->ConOut->OutputString(gST->ConOut, res);
+	char_to_wchar(str, res, len+1);
+	uefi_call_wrapper(gST->ConOut->OutputString, 2, gST->ConOut, res);
 }
 
 inline void printStr(char* str) {
