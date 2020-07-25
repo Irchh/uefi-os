@@ -47,7 +47,7 @@ inline void printStr(char* str) {
 }
 
 char* vformat(const char* fmt, va_list args) {
-	char* str = malloc(sizeof(char)*1);
+	char* str = kmalloc(sizeof(char)*1);
 	str[0] = 0;
 	char* backup;
 
@@ -66,7 +66,7 @@ char* vformat(const char* fmt, va_list args) {
 				}
 				case 'i': {
 					long long int_val = va_arg(args, long long);
-					char* intstr = malloc(22*sizeof(char));
+					char* intstr = kmalloc(22*sizeof(char));
 					if(!intstr){
 						//error(ERR_MEM); // Memory error, most likely out of memory
 						printStrW(L"\r\n___PRINTF ERROR___\r\n___MEMORY ERROR___");
@@ -75,9 +75,9 @@ char* vformat(const char* fmt, va_list args) {
 					itoa(int_val, intstr, 10);
 					backup = str;
 					str = strcat(str, intstr);
-					free(intstr);
+					kfree(intstr);
 					if (str) {
-						free(backup);
+						kfree(backup);
 					} else {
 						//error(ERR_MEM);
 						printStrW(L"\r\n___PRINTF ERROR___\r\n___MEMORY ERROR___");
@@ -87,7 +87,7 @@ char* vformat(const char* fmt, va_list args) {
 				}
 				case 'x': {
 					long long hex_val = va_arg(args, long long);
-					char* hexstr = malloc(22*sizeof(char));
+					char* hexstr = kmalloc(22*sizeof(char));
 					if(!hexstr){
 						//error(ERR_MEM); // Memory error, most likely out of memory
 						printStrW(L"\r\n___PRINTF ERROR___\r\n___MEMORY ERROR___");
@@ -96,9 +96,9 @@ char* vformat(const char* fmt, va_list args) {
 					itoa(hex_val, hexstr, 16);
 					backup = str;
 					str = strcat(str, hexstr);
-					free(hexstr);
+					kfree(hexstr);
 					if (str) {
-						free(backup);
+						kfree(backup);
 					} else {
 						//error(ERR_MEM);
 						printStrW(L"\r\n___PRINTF ERROR___\r\n___MEMORY ERROR___");
@@ -110,9 +110,9 @@ char* vformat(const char* fmt, va_list args) {
 					char* str_val = va_arg(args, char*);
 					backup = str;
 					str = strcat(str, str_val);
-					free(str_val);
+					kfree(str_val);
 					if (str) {
-						free(backup);
+						kfree(backup);
 					} else {
 						//error(ERR_MEM);
 						printStrW(L"\r\n___PRINTF ERROR___\r\n___MEMORY ERROR___");
@@ -128,7 +128,7 @@ char* vformat(const char* fmt, va_list args) {
 					backup = str;
 					str = strcat(str, charstr);
 					if (str) {
-						free(backup);
+						kfree(backup);
 					} else {
 						//error(ERR_MEM);
 						printStrW(L"\r\n___PRINTF ERROR___\r\n___MEMORY ERROR___");
@@ -149,7 +149,7 @@ char* vformat(const char* fmt, va_list args) {
 			backup = str;
 			str = strcat(str, test);
 			if (str) {
-				free(backup);
+				kfree(backup);
 			} else {
 				//error(ERR_MEM);
 				printStrW(L"\r\n___PRINTF ERROR___\r\n___MEMORY ERROR___");
@@ -172,7 +172,7 @@ char* format(const char* fmt, ...) {
 void vprintf(const char* fmt, va_list args) {
 	char* str = vformat(fmt, args);
 	printStr(str);
-	free(str);
+	kfree(str);
 }
 
 void printf(const char* fmt, ...) {

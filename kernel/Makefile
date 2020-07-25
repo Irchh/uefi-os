@@ -10,7 +10,7 @@ CFLAGS = \
 LDFLAGS = \
 		--target=x86_64-unknown-gnu \
 		-nostdlib \
-		-Wl,-e_start 
+		-Wl,-e_start
 
 C_SOURCES = $(wildcard cpu/*.c kernel/*.c drivers/*.c)
 ASM_SOURCES = $(filter-out cpu/kernel_entry.asm, $(wildcard cpu/*.asm)) $(wildcard cpu/*.S)

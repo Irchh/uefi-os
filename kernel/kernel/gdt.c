@@ -11,8 +11,8 @@ struct gdt_table gdt_table = {
 	{0, 0, 0, 0x92, 0xa0, 0},  /* 0x08 kernel data */
 	{0, 0, 0, 0x9a, 0xa0, 0},  /* 0x10 kernel code (kernel base selector) */
 	{0, 0, 0, 0x00, 0x00, 0},  /* 0x18 null (user base selector) */
-	{0, 0, 0, 0x92, 0xa0, 0},  /* 0x20 user data */
-	{0, 0, 0, 0x9a, 0xa0, 0},  /* 0x28 user code */
+	{0, 0, 0, 0xf2, 0xa0, 0},  /* 0x20 user data */
+	{0, 0, 0, 0xfa, 0xa0, 0},  /* 0x28 user code */
 	{0, 0, 0, 0x92, 0xa0, 0},  /* 0x30 ovmf data */
 	{0, 0, 0, 0x9a, 0xa0, 0},  /* 0x38 ovmf code */
 	{0, 0, 0, 0x89, 0xa0, 0},  /* 0x40 tss low */
@@ -53,19 +53,31 @@ void print_segment_stuff() {
 }
 
 extern void load_gdt(struct table_ptr* gdt_ptr);
+extern uint64_t read_rsp();
 
 void memzero(void* s, uint64_t n) {
 	for (int i = 0; i < n; ++i) ((uint8_t*)s)[i] = 0;
 }
 
+void setup_tss(struct tss* t, struct gdt_entry* tlo, struct gdt_entry* thi) {
+	memzero((void*)t, sizeof(*t));
+	uint64_t tss_base = ((uint64_t)t);
+	tlo->base15_0 = tss_base & 0xffff;
+	tlo->base23_16 = (tss_base >> 16) & 0xff;
+	tlo->base31_24 = (tss_base >> 24) & 0xff;
+	tlo->limit15_0 = sizeof(*t);
+	thi->limit15_0 = (tss_base >> 32) & 0xffff;
+}
+
 void setup_gdt() {
-	memzero((void*)&tss, sizeof(tss));
-	uint64_t tss_base = ((uint64_t)&tss);
-	gdt_table.tss_low.base15_0 = tss_base & 0xffff;
-	gdt_table.tss_low.base23_16 = (tss_base >> 16) & 0xff;
-	gdt_table.tss_low.base31_24 = (tss_base >> 24) & 0xff;
-	gdt_table.tss_low.limit15_0 = sizeof(tss);
-	gdt_table.tss_high.limit15_0 = (tss_base >> 32) & 0xffff;
+	kmsg(INFO "Loading GDT");
+	setup_tss(&tss, &gdt_table.tss_low, &gdt_table.tss_high);
+
 	gdt_ptr = (struct table_ptr){ sizeof(gdt_table)-1, (UINT64)&gdt_table };
 	load_gdt(&gdt_ptr);
+
+	tss.rsp0 = read_rsp();
+	tss.rsp1 = tss.rsp0;
+	tss.rsp2 = tss.rsp0;
+	kmsg(DONE "Loaded GDT");
 }

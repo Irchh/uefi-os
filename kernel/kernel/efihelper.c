@@ -2,6 +2,7 @@
 #include <io.h>
 #include <mem.h>
 #include <console.h>
+#include <keyboard.h>
 
 EFI_HANDLE gIH;
 EFI_SYSTEM_TABLE *gST;
@@ -61,6 +62,7 @@ EFI_STATUS init_efi(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	uefi_call_wrapper(gGP->QueryMode, 4, gGP, gGP->Mode->Mode, &size_of_info, &gop_mode_info);
 	lfb_base_addr = gGP->Mode->FrameBufferBase;
 	InitCon(gop_mode_info);
+	InitKeyboard();
 
 	return EFI_SUCCESS;
 }
@@ -177,6 +179,7 @@ UINTN mapSize = 0, mapKey, descriptorSize;
 EFI_MEMORY_DESCRIPTOR *memoryMap = NULL;
 UINT32 descriptorVersion;
 EFI_STATUS exit_services() {
+	kmsg(INFO "Exiting bootservices");
 	if (exit)
 		return EFI_SUCCESS;
 	exit = true;
@@ -188,7 +191,7 @@ EFI_STATUS exit_services() {
 	}
 	
 	mapSize += 2 * descriptorSize;
-	result = uefi_call_wrapper(gBS->AllocatePool, 4, EfiLoaderData, mapSize, (void **)&memoryMap);
+	result = uefi_call_wrapper(gBS->AllocatePool, 3, EfiLoaderData, mapSize, (void **)&memoryMap);
 	if (result != EFI_SUCCESS) {
 		return result;
 		//printf("-- ERROR: AllocatePool --\r\n");
@@ -205,5 +208,6 @@ EFI_STATUS exit_services() {
 		return result;
 		// printf("-- ERROR: ExitBootServices --\r\n");
 	}
+	kmsg(DONE "Exited bootservices");
 	return EFI_SUCCESS;
 }

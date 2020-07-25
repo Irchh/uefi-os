@@ -30,4 +30,13 @@ EFI_STATUS exit_services();
 void printModes();
 UINTN load_file_efi(CHAR16* file, void** dest);
 
+#define INFO "[\033[0;36m INFO \033[0m;] "
+#define DONE "[\033[0;32m DONE \033[0m;] "
+#define WARN "[\033[0;33m WARN \033[0m;] "
+#define ERR "[\033[0;31m ERROR \033[0m;] "
+#define NORET "\042[;"
+
+void Panic(const char* s);
+void kmsg(const char* s);
+
 #endif // __EFIHELPER_H_

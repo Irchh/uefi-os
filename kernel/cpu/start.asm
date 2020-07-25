@@ -10,9 +10,6 @@ global __chkstk
 extern kernel_main
 extern init_efi
 
-loopForever:
-    jmp loopForever
-
 __chkstk:
     ret
 
@@ -23,15 +20,11 @@ __chkstk:
 
 ; Move arguments to be System V ABI compatible
 _start:
-	push rdi
-	push rsi
 	mov rdi, rcx
 	mov rsi, rdx
     call init_efi
     call kernel_main
-    pop rsi
-    pop rdi
-    ret
+    jmp $
 
 ; required by uefi for some reason
 section .reloc

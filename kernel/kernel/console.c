@@ -41,7 +41,7 @@ void InitCon(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info) {
 				psf2_font->length * psf2_font->charsize
 			);
 			char* psf2_font_end = (char*)((unsigned char*)psf2_font)+font_len;
-			unicode = malloc(USHRT_MAX*2);
+			unicode = kmalloc(USHRT_MAX*2);
 			for (int i = 0; i < USHRT_MAX*2; ++i)
 				unicode[i] = 0;
 			while (s<psf2_font_end) {
@@ -100,6 +100,11 @@ void drawDots(n, off) {
 		drawPixel(300 + off, 300+i*2, 0x00FF0000);
 }
 
+int fgcol = 0x00FFFFFF;
+int bgcol = 0x00000000;
+void setFgCol(int c) { fgcol = c; }
+void setBgCol(int c) { bgcol = c; }
+
 void drawPsfChar(char c, UINTN cx, UINTN cy) {
 	int bytesperline = charsize/fontH;
 
@@ -123,9 +128,9 @@ void drawPsfChar(char c, UINTN cx, UINTN cy) {
 			for (int x = 0; x < bits; ++x) {
 				int pix = ((UINT8)glyph[0]>>(8-bits)) & (mask);
 				if (pix)
-					drawPixel(x+cx+offset, y+cy, 0x00FFFFFF);
+					drawPixel(x+cx+offset, y+cy, fgcol);
 				else
-					drawPixel(x+cx+offset, y+cy, 0x00000000);
+					drawPixel(x+cx+offset, y+cy, bgcol);
 				mask >>= 1;
 			}
 			offset += bits;
@@ -142,6 +147,9 @@ void scrollUp() {
 
 void PrintChar(char c) {
 	switch (c) {
+		case 0: {
+			break;
+		}
 		case '\n': {
 			if (++termY == termH) {
 				termY--;
@@ -172,7 +180,7 @@ void PrintStr(const char* s) {
 	}
 }
 
-void PrintInt(int i, int base) {
+void PrintInt(uint64_t i, int base) {
 	char str[22];
 	itoa(i, str, base);
 	PrintStr(str);

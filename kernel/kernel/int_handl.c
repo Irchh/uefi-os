@@ -1,5 +1,4 @@
 #include <efihelper.h>
-extern uint64_t int_handlers[256];
 
 extern void interrupt_handler_0();
 extern void interrupt_handler_1();
@@ -258,7 +257,7 @@ extern void interrupt_handler_253();
 extern void interrupt_handler_254();
 extern void interrupt_handler_255();
 
-void set_int_handl() {
+void set_int_handl(uint64_t* int_handlers) {
 	int_handlers[0] = (uint64_t)&interrupt_handler_0;
 	int_handlers[1] = (uint64_t)&interrupt_handler_1;
 	int_handlers[2] = (uint64_t)&interrupt_handler_2;

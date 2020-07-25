@@ -11,7 +11,7 @@ char* strcat(char* str1, char* str2) {
 	size_t str1len = strlen(str1);
 	size_t str2len = strlen(str2);
 
-	char* result = malloc((str1len + str2len + 1)*sizeof(char));
+	char* result = kmalloc((str1len + str2len + 1)*sizeof(char));
 	if (!result)
 		return 0;
 
@@ -26,7 +26,7 @@ char* strcat(char* str1, char* str2) {
 
 void itoa(long long i, char* res, int base) {
 	if (!res) return;
-		//res = malloc(22*sizeof(char));
+		//res = kmalloc(22*sizeof(char));
 
 	int k = 0;
 	long long j = i;
