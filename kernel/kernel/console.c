@@ -15,17 +15,19 @@ UINT32 termY = 0;
 
 struct psf2_header* psf2_font = NULL;
 struct psf1_header* psf1_font = NULL;
+UINTN font_len = 0;
 UINTN headersize = 0;
 UINTN charsize = 0;
 UINTN charlength = 0;
 UINT16* unicode;
 
-void InitCon(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info) {
-	UINTN font_len = load_file_efi(L"EFI\\BOOT\\MyOS\\UbuntuMono-R-8x16.psf", (void*)&psf2_font);
-	printf("LENGTH: %i\r\n", font_len);
-	psf1_font = (struct psf1_header*)psf2_font;
+void InitCon(uint64_t len, struct psf2_header* font) {
+	termX = 0;
+	termY = 0;
+	font_len = len;
+	psf2_font = font;
+	psf1_font = (struct psf1_header*)font;
 	if (PSF2_MAGIC_OK(psf2_font->magic)) {
-		printf("FONT IS PSF2\r\n");
 		fontW = psf2_font->width;
 		fontH = psf2_font->height;
 		headersize = psf2_font->headersize;
@@ -74,7 +76,6 @@ void InitCon(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info) {
 		}
 	}
 	else if (PSF1_MAGIC_OK(psf1_font->magic)) {
-		printf("FONT IS PSF1\r\n");
 		fontW = 8;
 		fontH = psf1_font->charsize;
 		headersize = sizeof(struct psf1_header);
@@ -82,6 +83,15 @@ void InitCon(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info) {
 
 		if (psf1_font->mode%PSF1_MODE512) charlength = 512;
 		else charlength = 256;
+	}else {
+		UINT32* at = (UINT32*)lfb_base_addr;
+		for (int x = 100; x < 130; ++x)
+		{
+			for (int y = 100; y < 130; ++y)
+			{
+				at[(gop_mode_info->PixelsPerScanLine)*y+x] = 0xFF0000;
+			}
+		}
 	}
 
 	termW = gop_mode_info->HorizontalResolution/fontW;
@@ -95,15 +105,17 @@ int abs(int n) {
 		return n;
 }
 
-void drawDots(n, off) {
-	for (int i = 0; i < n; ++i)
-		drawPixel(300 + off, 300+i*2, 0x00FF0000);
-}
-
 int fgcol = 0x00FFFFFF;
 int bgcol = 0x00000000;
 void setFgCol(int c) { fgcol = c; }
 void setBgCol(int c) { bgcol = c; }
+
+void setCursorPos(int x, int y) {termX = x; termY = y;}
+void getCursorPos(int *x, int *y) {*x = termX; *y = termY;}
+
+void clearLine(int y) {
+	clearBlock(0, y*fontH, termW*fontW, fontH);
+}
 
 void drawPsfChar(char c, UINTN cx, UINTN cy) {
 	int bytesperline = charsize/fontH;

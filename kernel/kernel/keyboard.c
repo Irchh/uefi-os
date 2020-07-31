@@ -2,8 +2,13 @@
 
 char CharMap[98*2];
 char key_state[98] = {};
+uint64_t buffer[0x100];
+uint8_t len = 0;
+uint8_t pos = 0;
 
 void InitKeyboard() {
+	len = 0; pos = 0;
+	for (int i = 0; i < 0x100; ++i) buffer[i] = 0;
 	for (int i = 0; i < sizeof(key_state); ++i) key_state[i] = 0;
 
 	char* str = "1234567890";
@@ -50,6 +55,20 @@ void InitKeyboard() {
 	CharMap[57+98] = ' ';
 	CharMap[86] = '<';
 	CharMap[86+98] = '>';
+}
+
+void AddKey(uint64_t key) {
+	buffer[(pos+len)&0xFF] = key;
+	pos -= (len == 0xFF);
+	len += (len != 0xFF);
+}
+
+uint64_t ReadKey() {
+	if (len == 0)
+		return 0;
+	pos++;
+	len--;
+	return buffer[pos-1];
 }
 
 void KeyPressed(uint64_t code) {

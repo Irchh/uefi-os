@@ -1,10 +1,25 @@
 #include <apic.h>
+#include <cpuid.h>
 
 bool check_apic() {
-	uint32_t eax, edx;
-	//cpuid(1, &eax, &edx);
-	//return edx & CPUID_FEAT_EDX_APIC;
+	uint32_t edx;
+	__get_cpuid(1, NULL, NULL, NULL, &edx);
 	return false;
+	//return edx & CPUID_FEAT_EDX_APIC;
+}
+
+bool setup_apic() {
+	if (!check_apic()) return false;
+	kmsg(INFO "APIC Supported");
+
+	asm("cli");
+	
+	remap_pic(0x20, 0x28);
+	mask_pic(0xFF, 0xFF);
+
+	asm("sti");
+
+	return true;
 }
 
 // Legacy PIC
@@ -21,12 +36,12 @@ bool check_apic() {
 #define ICW4_SFNM	0x10		/* Special fully nested (not) */
 
 void setup_pic() {
-	kmsg(INFO "Configuring PIC");
+	kmsg(NORET INFO "Configure PIC\r");
 	asm("cli");
 	remap_pic(0x20, 0x28); // 32, 40
-	mask_pic();
+	mask_pic(0xFC, 0xFF);
 	asm("sti");
-	kmsg(DONE "Configured PIC");
+	kmsg(DONE "Configure PIC");
 }
 
 void remap_pic(int offset1, int offset2) {
@@ -78,9 +93,9 @@ void IRQ_clear_mask(unsigned char IRQline) {
     outb(port, value);        
 }
 
-void mask_pic() {
-	outb(PIC1_D, 0xFC);
-	outb(PIC2_D, 0xFF);
+void mask_pic(int a, int b) {
+	outb(PIC1_D, a);
+	outb(PIC2_D, b);
 }
 
 void int_end(bool both) {

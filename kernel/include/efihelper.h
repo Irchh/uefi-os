@@ -4,31 +4,26 @@
 #include <stdint.h>
 #include <efi.h>
 #include <stdbool.h>
+#include <stddef.h>
 
-extern EFI_HANDLE gIH;
-extern EFI_SYSTEM_TABLE *gST;
-extern EFI_BOOT_SERVICES *gBS;
-extern EFI_RUNTIME_SERVICES *gRS;
-
-extern EFI_GRAPHICS_OUTPUT_PROTOCOL *gGP;
+struct SysInfo
+{
+	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info;
+	EFI_PHYSICAL_ADDRESS lfb_base_addr;
+	void* font;
+	uint64_t font_len;
+	size_t mapSize;
+	size_t descriptorSize;
+	EFI_MEMORY_DESCRIPTOR *memoryMap;
+	EFI_RUNTIME_SERVICES *RS;
+	EFI_SYSTEM_TABLE *ST;
+};
 
 extern UINTN size_of_info;
 extern EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info;
 extern EFI_PHYSICAL_ADDRESS lfb_base_addr;
 
-extern bool init;
-extern bool exit;
-
-extern UINTN mapSize, mapKey, descriptorSize;
-extern EFI_MEMORY_DESCRIPTOR *memoryMap;
-extern UINT32 descriptorVersion;
-
-EFI_STATUS init_efi(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable);
-void init_gfx();
-EFI_STATUS Init();
-EFI_STATUS exit_services();
-void printModes();
-UINTN load_file_efi(CHAR16* file, void** dest);
+extern struct SysInfo* sysInfo;
 
 #define INFO "[\033[0;36m INFO \033[0m;] "
 #define DONE "[\033[0;32m DONE \033[0m;] "

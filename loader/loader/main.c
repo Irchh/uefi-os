@@ -3,6 +3,9 @@
 #include <efi.h>
 #include <stdbool.h>
 #include <mem.h>
+#include <graphics.h>
+#include <file.h>
+#include <exit.h>
 
 EFI_GUID gEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
 EFI_GUID gEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
@@ -25,9 +28,27 @@ void bdgprnt(CHAR16* s) {
 
 EFI_BOOT_SERVICES* gBS;
 
+struct SysInfo
+{
+	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* gop_mode_info;
+	EFI_PHYSICAL_ADDRESS lfb_base_addr;
+	void* font;
+	uint64_t font_len;
+	size_t mapSize;
+	size_t descriptorSize;
+	EFI_MEMORY_DESCRIPTOR *memoryMap;
+	EFI_RUNTIME_SERVICES *RS;
+	EFI_SYSTEM_TABLE *ST;
+};
+
+struct SysInfo* sys_info;
+
+EFI_HANDLE gIH;
+
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *ST)
 {
 	SystemTable = ST;
+	gIH = ImageHandle;
 	gBS = SystemTable->BootServices;
 	bdgprnt(L"Loading kernel.elf...\r\n");
 	EFI_FILE *Kernel;
@@ -121,9 +142,25 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *ST)
 		}
 	bdgprnt(L"Loaded kernel to memory\r\n");
 
+
+	init_gfx();
+	sys_info = malloc(sizeof(struct SysInfo));
+	sys_info->font_len = load_file_efi(L"EFI\\BOOT\\MyOS\\UbuntuMono-R-8x16.psf", (void*)&sys_info->font);
+
+	sys_info->gop_mode_info = gop_mode_info;
+	sys_info->lfb_base_addr = lfb_base_addr;
+
 	bdgprnt(L"Jumping to entry point...\r\n");
-	int a = ((int (*)(EFI_HANDLE, EFI_SYSTEM_TABLE*))header.e_entry)(
-		ImageHandle, SystemTable
+	exit_services();
+
+	sys_info->mapSize = mapSize;
+	sys_info->descriptorSize = descriptorSize;
+	sys_info->memoryMap = memoryMap;
+
+	sys_info->RS = SystemTable->RuntimeServices;
+	sys_info->ST = ST;
+	int a = ((int (*)(struct SysInfo*))header.e_entry)(
+		sys_info
 	);
 	bdgprnt(L"Kernel returned ");
 	switch (a) {

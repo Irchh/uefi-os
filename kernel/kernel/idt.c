@@ -28,7 +28,7 @@ void debug_idt() {
 }
 
 void setup_idt() {
-	kmsg(INFO "Loading IDT");
+	kmsg(NORET INFO "Load IDT\r");
 	set_int_handl(int_handlers);
 	for (int i = 0; i < 256; ++i)
 	{
@@ -45,7 +45,7 @@ void setup_idt() {
 	}
 
 	load_idt(&idtr);
-	kmsg(DONE "Loaded IDT");
+	kmsg(DONE "Load IDT");
 }
 
 enum Exception {
@@ -61,12 +61,14 @@ enum Int {
 
 };
 
-void Print2(const char* s, UINT64 i) {
+void Print2(const char* s, uint64_t i) {
 	PrintStr(s);
 	PrintInt(i, 10);
 }
 
-void interrupt_handler(UINT64 n, UINT64 err, UINT64 SP) {
+
+uint64_t ticks = 0;
+void interrupt_handler(uint64_t n, uint64_t err, uint64_t SP) {
 	switch (n) {
 		case DIVZ: {
 			Panic("Division by zero");
@@ -92,6 +94,7 @@ void interrupt_handler(UINT64 n, UINT64 err, UINT64 SP) {
 		}
 		case TICK: {
 			//PrintChar('.');
+			ticks++;
 			int_end(false);
 			break;
 		}
@@ -100,12 +103,11 @@ void interrupt_handler(UINT64 n, UINT64 err, UINT64 SP) {
 			PrintInt(n, 10);
 			PrintStr("\n");
 			Panic("Unknown interrupt");
-			while(1);
 		}
 	}
 }
 
-void general_protection_fault_handler(UINT64 rip, UINT64 err, UINT64 SP) {
+void general_protection_fault_handler(uint64_t rip, uint64_t err, uint64_t SP) {
 	int ext = err&1;
 	int table = (err&6)>>1;
 	int index = (err&0xFFF8)>>4;
@@ -126,24 +128,20 @@ void general_protection_fault_handler(UINT64 rip, UINT64 err, UINT64 SP) {
 	PrintInt(index, 16);
 
 	PrintStr("\nHalting!\n");
-	while(1);
+	while(1) asm("hlt");
 }
 
-void pagefault_handler(UINT64 n, UINT64 err, UINT64 SP) {
+void pagefault_handler(uint64_t n, uint64_t err, uint64_t SP) {
 	PrintStr("PAGEFAULT: ");
 	PrintInt(err, 10);
 	PrintStr("\nHalting!\n");
-	while(1);
+	while(1) asm("hlt");
 }
 
 #include <keyboard.h>
-void keyboard_handler(UINT64 n, UINT64 key, UINT64 SP) {
+void keyboard_handler(uint64_t n, uint64_t key, uint64_t SP) {
 	KeyPressed(key);
-	if ((key&128)) goto end;
-	//PrintStr("Key: ");
-	//PrintInt(key, 10);
-	//PrintChar('\n');
-	PrintChar(FromKeyCode(key));
-end:
+	if (!(key&128))
+		AddKey(key);
 	int_end(false);
 }

@@ -32,7 +32,7 @@ void itoa(long long i, char* res, int base) {
 	long long j = i;
 	while ((j/=base) != 0) k++;
 
-	if (i < 0 && base < 11) {
+	if (i < 0 && base <= 10) {
 		k++;
 		i *= -1;
 		res[0] = '-';

@@ -15,13 +15,12 @@ __chkstk:
 
 ; arguments
 ; sysv: rdi, rsi, rdx, rcx, r8, r9, stack
-; ms:        rcx, rdx, r8,  r9, stack
+; ms:   rcx, rdx, r8,  r9, stack
 ; always return in rax
 
 ; Move arguments to be System V ABI compatible
 _start:
 	mov rdi, rcx
-	mov rsi, rdx
     call init_efi
     call kernel_main
     jmp $

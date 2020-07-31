@@ -7,7 +7,9 @@
 #define IA32_APIC_BASE_MSR_BSP 0x100 // Processor is a BSP
 #define IA32_APIC_BASE_MSR_ENABLE 0x800
 
-bool check_apic();
+#define CPUID_FEAT_EDX_APIC 1<<9
+
+bool setup_apic();
 
 // Legacy PIC support if APIC is not supported
 #define PIC1 0x20

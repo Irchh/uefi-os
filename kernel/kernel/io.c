@@ -2,6 +2,7 @@
 #include <io.h>
 #include <mem.h>
 #include <string.h>
+#include <console.h>
 
 void char_to_wchar(char* str, CHAR16* res, int len) {
 	for (int i = 0; i < len; ++i){
@@ -18,28 +19,14 @@ int newlines(char* str, int len) {
 }
 
 void printStrW(CHAR16* str) {
-	uefi_call_wrapper(gST->ConOut->OutputString, 2, gST->ConOut, str);
+	//uefi_call_wrapper(gST->ConOut->OutputString, 2, gST->ConOut, str);
 }
 
-void _printWithBS(char* str);
-void (*__printer)(char*) = _printWithBS;
+void _printAfter(char* str);
+void (*__printer)(char*) = _printAfter;
 
 void _printAfter(char* str) {
-	// TODO: make output work after exit 
-}
-
-void _printWithBS(char* str) {
-	if (exit) {
-		__printer = _printAfter;
-		__printer(str);
-	}
-	int len = strlen(str);
-	int new = newlines(str, len);
-	
-	CHAR16 res[len+new];
-
-	char_to_wchar(str, res, len+1);
-	uefi_call_wrapper(gST->ConOut->OutputString, 2, gST->ConOut, res);
+	PrintStr(str);
 }
 
 inline void printStr(char* str) {

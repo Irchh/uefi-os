@@ -70,7 +70,7 @@ void setup_tss(struct tss* t, struct gdt_entry* tlo, struct gdt_entry* thi) {
 }
 
 void setup_gdt() {
-	kmsg(INFO "Loading GDT");
+	kmsg(NORET INFO "Load GDT\r");
 	setup_tss(&tss, &gdt_table.tss_low, &gdt_table.tss_high);
 
 	gdt_ptr = (struct table_ptr){ sizeof(gdt_table)-1, (UINT64)&gdt_table };
@@ -79,5 +79,5 @@ void setup_gdt() {
 	tss.rsp0 = read_rsp();
 	tss.rsp1 = tss.rsp0;
 	tss.rsp2 = tss.rsp0;
-	kmsg(DONE "Loaded GDT");
+	kmsg(DONE "Load GDT");
 }
