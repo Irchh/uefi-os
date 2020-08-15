@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <efi.h>
 
 extern UINTN mapSize, descriptorSize;

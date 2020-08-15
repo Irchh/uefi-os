@@ -2,6 +2,7 @@
 #define __MEM_H_
 
 #include <stddef.h>
+#include <stdint.h>
 #include <efi.h>
 
 extern EFI_BOOT_SERVICES* gBS;

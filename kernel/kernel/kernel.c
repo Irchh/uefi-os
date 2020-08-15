@@ -125,6 +125,36 @@ void* find_rsdp(int *ver) {
 
 extern uint64_t ticks;
 
+uint64_t read_pstruct(struct PML4T *pml4t, uint8_t* index, int level) {
+	if (index == 0 | level > 2)
+		return 0;
+
+	uint64_t value = 0;
+	struct PDPT* pdpt = NULL;
+	struct PDT* pdt = NULL;
+	struct PT* pt = NULL;
+
+	switch (level) {
+		case 0:
+			pdpt = (struct PDPT*)((uint64_t)pml4t->pdpt&(~0xFFF0000000000FFF));
+		case 1:
+			pdt = (struct PDT*)((uint64_t)&pdpt->pdt&(~0xFFF0000000000FFF));
+		case 2:
+			pt = (struct PT*)((uint64_t)&pdt->pt&(~0xFFF0000000000FFF));
+			break;
+		default:
+			return 0;
+	}
+
+	if (level == 0)
+		value = (uint64_t)&pdpt[index[0]]&(~0xFFF0000000000FFF);
+	else if (level == 1)
+		value = (uint64_t)&pdt[index[1]]&(~0xFFF0000000000FFF);
+	else if (level == 2)
+		value = (uint64_t)&pt[index[2]]&(~0xFFF0000000000FFF);
+	return value;
+}
+
 EFI_STATUS kernel_main()
 {
 	kmsg(INFO "Kernel init");
@@ -204,7 +234,7 @@ EFI_STATUS kernel_main()
 	PrintInt(sizeof(struct PML4T), 10);
 	PrintChar('\n');
 
-	struct PML4T *pml4t = (struct PML4T*)read_cr3();
+	struct PML4T *pml4t = (struct PML4T*)(read_cr3()&(~0xFFF));
 
 	setup_paging(pml4t);
 	first_n_pages(20);
@@ -233,20 +263,9 @@ EFI_STATUS kernel_main()
 			}
 			if (level < 0) level = 0;
 			else if (level > 2) level = 2;
-			if ((uint64_t)pml4t->pdpt[index[0]] == 0) {
-				level = 0;
-			} else if ((uint64_t)pml4t->pdpt[index[0]]->pdt[index[1]] == 0) {
-				level = 1;
-			}
 
-			uint64_t value = 0;
-			if (level == 0)
-				value = (uint64_t)pml4t->pdpt[index[0]];
-			else if (level == 1)
-				value = (uint64_t)pml4t->pdpt[index[0]]->pdt[index[1]];
-			else if (level == 2)
-				value = (uint64_t)pml4t->pdpt[index[0]]->pdt[index[1]]->pt[index[2]];
-
+			uint64_t value = read_pstruct(pml4t, index, level);
+			
 			int x = 0;
 			int y = 0;
 			getCursorPos(&x, &y);
