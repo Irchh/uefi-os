@@ -124,6 +124,8 @@ void* find_rsdp(int *ver) {
 }
 
 extern uint64_t ticks;
+extern uint64_t rsp;
+extern uint64_t rbp;
 
 EFI_STATUS kernel_main()
 {
@@ -146,6 +148,9 @@ EFI_STATUS kernel_main()
 	PrintInt(sysInfo->descriptorSize, 10);
 	PrintStr("\n");
 
+	kmsg(NORET INFO "RSP/RBP = 0x");
+	PrintInt(rsp, 16); PrintStr("/0x");
+	PrintInt(rbp, 16); PrintChar('\n');
 
 	uint8_t	*startOfMemoryMap = (uint8_t *)sysInfo->memoryMap;
 	uint8_t *endOfMemoryMap = startOfMemoryMap + sysInfo->mapSize;
@@ -220,10 +225,11 @@ EFI_STATUS kernel_main()
 		char key = ReadKey();
 		if (key) {
 			switch (key) {
-				case 72: { index[level]--; break; }
-				case 80: { index[level]++; break; }
-				case 75: { level--; break; }
-				case 77: { level++; break; }
+				case 72: { index[level]--; break; }	// ARROW_UP
+				case 80: { index[level]++; break; }	// ARROW_DOWN
+				case 75: { level--; break; }		// ARROW_LEFT
+				case 77: { level++; break; }		// ARROW_RIGHT
+				case 11: { index[level] = 0; break; } // NUM_ZERO
 				default: {
 					char c = FromKeyCode(key);
 					if (c)
@@ -243,9 +249,9 @@ EFI_STATUS kernel_main()
 			if (level == 0)
 				value = (uint64_t)pml4t->pdpt[index[0]];
 			else if (level == 1)
-				value = (uint64_t)pml4t->pdpt[index[0]]->pdt[index[1]];
+				value = (uint64_t)pml4t->pdpt[index[0]]->pdt[index[1]]>>40;
 			else if (level == 2)
-				value = (uint64_t)pml4t->pdpt[index[0]]->pdt[index[1]]->pt[index[2]];
+				value = (uint64_t)((struct PDT*)((uint64_t)pml4t->pdpt[index[0]]->pdt[index[1]]>>40))->pt[index[2]];
 
 			int x = 0;
 			int y = 0;
