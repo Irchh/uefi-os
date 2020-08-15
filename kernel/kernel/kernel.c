@@ -124,6 +124,8 @@ void* find_rsdp(int *ver) {
 }
 
 extern uint64_t ticks;
+extern uint64_t rsp;
+extern uint64_t rbp;
 
 uint64_t read_pstruct(struct PML4T *pml4t, uint8_t* index, int level) {
 	if (index == 0 | level > 2)
@@ -176,6 +178,9 @@ EFI_STATUS kernel_main()
 	PrintInt(sysInfo->descriptorSize, 10);
 	PrintStr("\n");
 
+	kmsg(NORET INFO "RSP/RBP = 0x");
+	PrintInt(rsp, 16); PrintStr("/0x");
+	PrintInt(rbp, 16); PrintChar('\n');
 
 	uint8_t	*startOfMemoryMap = (uint8_t *)sysInfo->memoryMap;
 	uint8_t *endOfMemoryMap = startOfMemoryMap + sysInfo->mapSize;
@@ -250,10 +255,11 @@ EFI_STATUS kernel_main()
 		char key = ReadKey();
 		if (key) {
 			switch (key) {
-				case 72: { index[level]--; break; }
-				case 80: { index[level]++; break; }
-				case 75: { level--; break; }
-				case 77: { level++; break; }
+				case 72: { index[level]--; break; }	// ARROW_UP
+				case 80: { index[level]++; break; }	// ARROW_DOWN
+				case 75: { level--; break; }		// ARROW_LEFT
+				case 77: { level++; break; }		// ARROW_RIGHT
+				case 11: { index[level] = 0; break; } // NUM_ZERO
 				default: {
 					char c = FromKeyCode(key);
 					if (c)

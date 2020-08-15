@@ -21,6 +21,8 @@ __chkstk:
 ; Move arguments to be System V ABI compatible
 _start:
 	mov rdi, rcx
+	mov rsi, rsp
+	mov rdx, rbp
     call init_efi
     call kernel_main
     jmp $
