@@ -1,12 +1,14 @@
 # uefi-os
-My (Soon™) UEFI os written in C.
+My (Soon™) UEFI os written in C. Very hacky and I'm mostly done with this now. Only making it public because I don't plan on doing anything with it.
 
 # Features after exiting UEFI Boot Services
 - Rendering
 	- PSF1/2 font rendering
-- Thats it really so far
+- Can read keyboard input (So could write simple shell)
+- Write syscall (Only to screen atm, aka can use it for output)
+- That's it really so far
 
-# Wanted features
+# Wanted features (Not happening in this project, maybe next one)
 - I/O support (Keyboard/Mouse/Storage/etc.)
 - Running programs
 - Threading
